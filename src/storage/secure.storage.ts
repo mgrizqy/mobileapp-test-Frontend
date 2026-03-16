@@ -5,6 +5,7 @@
 // - save: serialize and write the full account store to disk
 // - clear: wipe all account data (full logout everywhere)
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 import { PersistedAccountStore } from '../types/auth.types';
 
 const STORE_KEY = 'account_store';
@@ -14,9 +15,25 @@ const EMPTY_STORE: PersistedAccountStore = {
   activeUserId: null,
 };
 
+// Web fallback — localStorage is fine for development, native uses SecureStore
+const storage = {
+  getItem: async (key: string): Promise<string | null> => {
+    if (Platform.OS === 'web') return localStorage.getItem(key);
+    return SecureStore.getItemAsync(key);
+  },
+  setItem: async (key: string, value: string): Promise<void> => {
+    if (Platform.OS === 'web') { localStorage.setItem(key, value); return; }
+    await SecureStore.setItemAsync(key, value);
+  },
+  deleteItem: async (key: string): Promise<void> => {
+    if (Platform.OS === 'web') { localStorage.removeItem(key); return; }
+    await SecureStore.deleteItemAsync(key);
+  },
+};
+
 export async function loadAccountStore(): Promise<PersistedAccountStore> {
   try {
-    const raw = await SecureStore.getItemAsync(STORE_KEY);
+    const raw = await storage.getItem(STORE_KEY);
 
     // No data on disk yet — first launch
     if (!raw) return EMPTY_STORE;
@@ -30,9 +47,9 @@ export async function loadAccountStore(): Promise<PersistedAccountStore> {
 }
 
 export async function saveAccountStore(store: PersistedAccountStore): Promise<void> {
-  await SecureStore.setItemAsync(STORE_KEY, JSON.stringify(store));
+  await storage.setItem(STORE_KEY, JSON.stringify(store));
 }
 
 export async function clearAccountStore(): Promise<void> {
-  await SecureStore.deleteItemAsync(STORE_KEY);
+  await storage.deleteItem(STORE_KEY);
 }
