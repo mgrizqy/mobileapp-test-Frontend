@@ -12,6 +12,7 @@ export type StoredAccount = {
   email: string;
   name: string;
   refreshToken: string;
+  deviceName: string;
 };
 
 // The full structure persisted as one JSON blob in SecureStore

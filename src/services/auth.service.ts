@@ -78,6 +78,7 @@ export async function login(email: string, password: string): Promise<void> {
     email,
     name: user.name,
     refreshToken: tokens.refreshToken,
+    deviceName,
   });
   console.log('✅ Account added, login complete');
 }
