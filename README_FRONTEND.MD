@@ -12,7 +12,13 @@
 
 ## Setup
 1. `npm install`
-2. `npx expo start`
+2. Open Android Studio Emulator and run a virtual android device
+3. Set the `.env`:
+```.env
+EXPO_PUBLIC_API_URL=http://10.0.2.2:3000/api
+```
+This is for api connection to the backend with the emulator
+4. `npx expo start`. Press a for android, it will connect to the emulator
 
 ## Project Structure
 ```
