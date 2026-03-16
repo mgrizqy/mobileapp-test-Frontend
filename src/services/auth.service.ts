@@ -59,14 +59,19 @@ export async function login(email: string, password: string): Promise<void> {
   const deviceName = buildDeviceName();
   const tokens = await loginUser({ email, password, deviceName });
 
+  console.log('🔑 Decoding token...');
   const role = decodeRole(tokens.accessToken);
   const userId = decodeUserId(tokens.accessToken);
+  console.log('🔑 Decoded:', { role, userId });
 
   // Hydrate auth store first so the /me call has a valid access token to send
   getAuthStore().setAuth(tokens.accessToken, userId, role);
+  console.log('✅ Auth store set');
 
   // Fetch name for display in account switcher — access token is now set so this works
+  console.log('👤 Calling getMe...');
   const user = await getMe();
+  console.log('👤 getMe response:', user);
 
   await getAccountsStore().addAccount({
     userId,
@@ -74,6 +79,7 @@ export async function login(email: string, password: string): Promise<void> {
     name: user.name,
     refreshToken: tokens.refreshToken,
   });
+  console.log('✅ Account added, login complete');
 }
 
 // ─── Logout ──────────────────────────────────────────────────────────────────
@@ -147,7 +153,11 @@ function decodeJwtPayload(token: string): Record<string, unknown> | null {
   try {
     // JWT is three base64 segments separated by dots — the middle one is the payload
     const base64 = token.split('.')[1];
-    const decoded = Buffer.from(base64, 'base64').toString('utf-8');
+
+    // Buffer is Node.js only — React Native's JS engine uses atob instead.
+    // base64url uses - and _ instead of + and /, so we normalize before decoding.
+    const normalized = base64.replace(/-/g, '+').replace(/_/g, '/');
+    const decoded = atob(normalized);
     return JSON.parse(decoded) as Record<string, unknown>;
   } catch {
     return null;

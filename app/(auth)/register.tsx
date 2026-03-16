@@ -44,15 +44,35 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
+      console.log('📝 Register attempt:', { 
+        name: name.trim(), 
+        email: email.trim().toLowerCase(),
+        url: process.env.EXPO_PUBLIC_API_URL 
+      });
+
       await register(name.trim(), email.trim().toLowerCase(), password);
-      // Registration succeeded — go to login so user can sign in
+      console.log('✅ Register success');
       router.replace('/(auth)/login');
     } catch (error) {
+      console.log('❌ Register error:', error);
+
       if (axios.isAxiosError(error)) {
+        console.log('🔍 Axios error details:', {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          config: {
+            url: error.config?.url,
+            method: error.config?.method,
+            baseURL: error.config?.baseURL
+          }
+        });
+
         const data = error.response?.data as ApiError | undefined;
         const message = data?.message;
         setApiError(Array.isArray(message) ? message[0] : (message ?? 'Something went wrong'));
       } else {
+        console.log('🔍 Non-axios error:', error);
         setApiError('Something went wrong');
       }
     } finally {

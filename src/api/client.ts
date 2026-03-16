@@ -10,6 +10,7 @@ import { getAuthStore } from '../stores/auth.store';
 import { getAccountsStore } from '../stores/accounts.store';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000/api';
+console.log('🔧 Using API URL:', BASE_URL);
 
 export const client = axios.create({
   baseURL: BASE_URL,
