@@ -109,24 +109,28 @@ export async function logout(): Promise<void> {
 export async function switchAccount(userId: string): Promise<void> {
   const { setAuth, clearAuth } = getAuthStore();
 
-  await getAccountsStore().setActiveAccount(userId);
+  // Find the account directly from the current list — do not rely on activeAccount
+  // after setActiveAccount because Zustand state updates are async
+  const { accounts } = getAccountsStore();
+  const account = accounts.find((a) => a.userId === userId) ?? null;
 
-  const { activeAccount } = getAccountsStore();
-  if (!activeAccount) {
+  if (!account) {
     clearAuth();
     return;
   }
 
+  await getAccountsStore().setActiveAccount(userId);
+
   try {
-    const tokens = await refreshTokens(activeAccount.refreshToken);
+    const tokens = await refreshTokens(account.refreshToken);
 
     await getAccountsStore().updateRefreshToken(userId, tokens.refreshToken);
 
     const role = decodeRole(tokens.accessToken);
     setAuth(tokens.accessToken, userId, role);
   } catch {
-    // Refresh token for this account is expired — remove it
-    await getAccountsStore().removeAccount(userId);
+    // Refresh failed — clear auth so the root layout redirects to login
+    // Do NOT remove the account — the user should be able to log back in manually
     clearAuth();
   }
 }

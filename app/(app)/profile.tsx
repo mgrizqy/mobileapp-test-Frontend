@@ -4,6 +4,7 @@
 // - No API calls on mount — data already hydrated at login
 import { useState } from 'react';
 import { Alert, Text, View } from 'react-native';
+import { router } from 'expo-router';
 import { useAccountsStore } from '../../src/stores/accounts.store';
 import { useAuthStore } from '../../src/stores/auth.store';
 import { logout } from '../../src/services/auth.service';
@@ -12,7 +13,7 @@ import { ScreenHeader } from '../../src/components/ui/ScreenHeader';
 import { InfoRow } from '../../src/components/ui/InfoRow';
 
 export default function ProfileScreen() {
-  const { activeAccount } = useAccountsStore();
+  const { activeAccount, accounts } = useAccountsStore();
   const { role } = useAuthStore();
   const [loading, setLoading] = useState(false);
 
@@ -28,8 +29,16 @@ export default function ProfileScreen() {
           onPress: async () => {
             setLoading(true);
             try {
+              // Check before logout — after removeAccount the list will already be shorter
+              const remainingAccounts = accounts.filter((a) => a.userId !== activeAccount?.userId);
+
               await logout();
-              // Root layout watches isAuthenticated and redirects to login automatically
+
+              if (remainingAccounts.length > 0) {
+                // Other accounts exist — let the user pick one
+                router.replace('/account-switcher');
+              }
+              // If no accounts remain, root layout sees isAuthenticated=false and redirects to login
             } catch {
               Alert.alert('Error', 'Something went wrong. Please try again.');
             } finally {

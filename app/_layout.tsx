@@ -14,6 +14,7 @@ import '../global.css';
 export default function RootLayout() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isInitializing = useAuthStore((s) => s.isInitializing);
+  const userId = useAuthStore((s) => s.userId);
 
   useEffect(() => {
     bootInit();
@@ -27,7 +28,7 @@ export default function RootLayout() {
     } else {
       router.replace('/(auth)/login');
     }
-  }, [isAuthenticated, isInitializing]);
+  }, [isAuthenticated, isInitializing, userId]);
 
   // Blank screen while boot is in progress — no flash of wrong content
   if (isInitializing) {
@@ -41,6 +42,15 @@ export default function RootLayout() {
 
       {/* App screens (tabs) — no header, tab bar handles navigation */}
       <Stack.Screen name="(app)" options={{ headerShown: false }} />
+
+      {/* Account switcher — modal, slides up over the tab bar */}
+      <Stack.Screen
+        name="account-switcher"
+        options={{
+          presentation: 'modal',
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

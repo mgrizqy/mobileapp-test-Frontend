@@ -22,11 +22,13 @@ export default function SessionsScreen() {
   const fetchSessions = useCallback(async () => {
     try {
       const data = await getSessions();
+      console.log('📱 Sessions fetched:', data);
       // Show most recent session first
       setSessions(data.sort((a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       ));
-    } catch {
+    } catch (error) {
+      console.log('💥 Sessions fetch error:', error);
       Alert.alert('Error', 'Could not load sessions. Please try again.');
     } finally {
       setLoading(false);
